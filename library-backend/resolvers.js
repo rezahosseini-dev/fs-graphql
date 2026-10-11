@@ -31,6 +31,12 @@ const resolvers = {
     },
   },
 
+  Author: {
+    bookCount: async (root) => {
+      return Book.countDocuments({ author: root._id });
+    },
+  },
+
   Mutation: {
     addBook: async (root, args, { currentUser }) => {
       if (!currentUser) {
@@ -126,7 +132,7 @@ const resolvers = {
       const user = await User.findOne({ username: args.username });
 
       if (!user || args.password !== "secret") {
-        throw new GraphQLError("wrong credentials", {
+        throw new GraphQLError("login failed: wrong credentials", {
           extensions: {
             code: "BAD_USER_INPUT",
           },
@@ -140,6 +146,7 @@ const resolvers = {
 
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) };
     },
+
     _resetDatabase: async () => {
       if (process.env.NODE_ENV !== "test") {
         throw new GraphQLError("_resetDatabase is only available in test mode");
@@ -147,6 +154,7 @@ const resolvers = {
       await Author.deleteMany({});
       await Book.deleteMany({});
       await User.deleteMany({});
+
       return true;
     },
   },
